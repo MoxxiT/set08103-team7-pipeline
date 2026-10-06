@@ -32,7 +32,7 @@ We follow a strict GitFlow branching model:
 * Apache Maven installed
 
 ### Build Instructions
-
+mvn clean test
 1. Clone the repository:
 
    ```bash
