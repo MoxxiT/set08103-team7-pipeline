@@ -4,7 +4,7 @@ Welcome to the GitHub repository for Team 7 in SET08103 (Software Engineering Me
 
 ## Team Members & Roles
 
-* **MoxxiT** – Project Lead / Infrastructure & DevOps
+* **Trisztan** – Project Lead / Infrastructure & DevOps
 * **David** – Analysis & Design
 * **Dorjee** – Backend & Core Development
 * **Adrian** – Testing & Documentation
@@ -32,7 +32,7 @@ We follow a strict GitFlow branching model:
 * Apache Maven installed
 
 ### Build Instructions
-
+mvn clean test
 1. Clone the repository:
 
    ```bash
