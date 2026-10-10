@@ -30,9 +30,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Install MySQL Client
+        run: sudo apt-get update && sudo apt-get install -y default-mysql-client
+
       - name: Import World Database
-        run: |
-          mysql -h 127.0.0.1 -uroot -pexamplepassword world < db/world.sql
+        run: mysql -h 127.0.0.1 -uroot -pexamplepassword world < db/world.sql
 
       - name: Build with Maven
         run: mvn clean package
