@@ -20,7 +20,7 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
 
-      - name: Build with Maven
+      - name: Build Fat JAR with Maven
         run: mvn clean package -DskipTests
 
       - name: Run Docker Compose Stack
