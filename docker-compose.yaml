@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   db:
     build: db/.
@@ -8,10 +7,11 @@ services:
     ports:
       - "33060:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-e", "SELECT 1"]
       interval: 5s
-      timeout: 3s
-      retries: 10
+      timeout: 5s
+      retries: 15
+      start_period: 10s
 
   app:
     build: .
