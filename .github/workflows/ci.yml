@@ -1,3 +1,4 @@
+
 name: Java CI Pipeline
 
 on:
@@ -10,6 +11,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: world
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,5 +35,12 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Import world database
+        run: mysql -h 127.0.0.1 -uroot -proot world < db/world.sql
+
       - name: Build with Maven
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+          DB_PASSWORD: root
         run: mvn clean package
