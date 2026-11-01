@@ -2,8 +2,8 @@ package org.example;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,22 +31,10 @@ public class PopulationReport {
             ResultSet rs = stmt.executeQuery(query);
 
             while (rs.next()) {
-                String name = rs.getString("CountryName");
-                long totalPop = rs.getLong("TotalPop");
-                long urbanPop = rs.getLong("UrbanPop");
-                long ruralPop = Math.max(0, totalPop - urbanPop);
-
-                double urbanPct = totalPop > 0 ? ((double) urbanPop / totalPop) * 100.0 : 0.0;
-                double ruralPct = totalPop > 0 ? ((double) ruralPop / totalPop) * 100.0 : 0.0;
-
-                PopulationComposition comp = new PopulationComposition();
-                comp.setName(name);
-                comp.setTotalPopulation(totalPop);
-                comp.setUrbanPopulation(urbanPop);
-                comp.setUrbanPercentage(urbanPct);
-                comp.setRuralPopulation(ruralPop);
-                comp.setRuralPercentage(ruralPct);
-                list.add(comp);
+                list.add(buildComposition(
+                        rs.getString("CountryName"),
+                        rs.getLong("TotalPop"),
+                        rs.getLong("UrbanPop")));
             }
             rs.close();
             stmt.close();
@@ -54,6 +42,27 @@ public class PopulationReport {
             e.printStackTrace();
         }
         return list;
+    }
+
+    /**
+     * Builds a PopulationComposition from raw totals.
+     * Kept separate from the database code so it can be unit tested.
+     * Note: the world database has a few countries where city population
+     * exceeds country population, so the urban percentage is capped at 100.
+     */
+    static PopulationComposition buildComposition(String name, long totalPop, long urbanPop) {
+        long ruralPop = Math.max(0, totalPop - urbanPop);
+        double urbanPct = totalPop > 0 ? Math.min(100.0, (double) urbanPop / totalPop * 100.0) : 0.0;
+        double ruralPct = totalPop > 0 ? (double) ruralPop / totalPop * 100.0 : 0.0;
+
+        PopulationComposition comp = new PopulationComposition();
+        comp.setName(name);
+        comp.setTotalPopulation(totalPop);
+        comp.setUrbanPopulation(urbanPop);
+        comp.setUrbanPercentage(urbanPct);
+        comp.setRuralPopulation(ruralPop);
+        comp.setRuralPercentage(ruralPct);
+        return comp;
     }
 
     public static void displayComposition(List<PopulationComposition> list) {
