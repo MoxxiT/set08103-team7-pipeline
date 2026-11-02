@@ -2,7 +2,8 @@
 package org.example;
 
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PopulationReport {
 
@@ -13,7 +14,7 @@ public class PopulationReport {
                 + "FROM country c LEFT JOIN city ci ON c.Code = ci.CountryCode "
                 + "GROUP BY c.Code, c.Name, c.Population";
 
-        return getComposition(sql, true);
+        return getData(sql);
     }
 
     public static List<PopulationComposition> getContinentPopulationComposition() {
@@ -21,10 +22,11 @@ public class PopulationReport {
         String sql = "SELECT c.Continent AS Name, SUM(c.Population) AS Total, "
                 + "SUM(COALESCE(x.Urban, 0)) AS Urban "
                 + "FROM country c LEFT JOIN "
-                + "(SELECT CountryCode, SUM(Population) AS Urban FROM city GROUP BY CountryCode) x "
+                + "(SELECT CountryCode, SUM(Population) AS Urban "
+                + "FROM city GROUP BY CountryCode) x "
                 + "ON c.Code = x.CountryCode GROUP BY c.Continent";
 
-        return getComposition(sql, false);
+        return getData(sql);
     }
 
     public static List<PopulationComposition> getRegionPopulationComposition() {
@@ -32,22 +34,21 @@ public class PopulationReport {
         String sql = "SELECT c.Region AS Name, SUM(c.Population) AS Total, "
                 + "SUM(COALESCE(x.Urban, 0)) AS Urban "
                 + "FROM country c LEFT JOIN "
-                + "(SELECT CountryCode, SUM(Population) AS Urban FROM city GROUP BY CountryCode) x "
+                + "(SELECT CountryCode, SUM(Population) AS Urban "
+                + "FROM city GROUP BY CountryCode) x "
                 + "ON c.Code = x.CountryCode GROUP BY c.Region";
 
-        return getComposition(sql, false);
+        return getData(sql);
     }
 
-    private static List<PopulationComposition> getComposition(String sql, boolean country) {
+    public static List<PopulationComposition> getData(String sql) {
 
         List<PopulationComposition> list = new ArrayList<>();
 
         try {
             Connection con = DatabaseConnection.getConnection();
-            if (con == null) return list;
-
             Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+                     ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
 
@@ -55,7 +56,9 @@ public class PopulationReport {
                 long urban = rs.getLong("Urban");
                 long rural = total - urban;
 
-                if (rural < 0) rural = 0;
+                if (rural < 0) {
+                    rural = 0;
+                }
 
                 double urbanPercent = 0;
                 double ruralPercent = 0;
@@ -86,104 +89,32 @@ public class PopulationReport {
 
         return list;
     }
-    public static void displayComposition(List<PopulationComposition> list) {
+
+    public static void display(List<PopulationComposition> list) {
 
         for (PopulationComposition p : list) {
-            System.out.println(p.getName() + " | "
-                    + p.getTotalPopulation() + " | "
-                    + p.getUrbanPopulation() + " | "
-                    + p.getRuralPopulation() + " | "
-                    + p.getUrbanPercentage() + "% | "
-                    + p.getRuralPercentage() + "%");
-        }
-    }
-
-    public static Map<String, Long> getWorldPopulation() {
-        return getData("SELECT 'World' AS Name, SUM(Population) AS Population FROM country");
-    }
-
-    public static Map<String, Long> getPopulationByContinent() {
-        return getData("SELECT Continent AS Name, SUM(Population) AS Population FROM country GROUP BY Continent");
-    }
-
-    public static Map<String, Long> getPopulationByRegion() {
-        return getData("SELECT Region AS Name, SUM(Population) AS Population FROM country GROUP BY Region");
-    }
-
-    public static Map<String, Long> getPopulationByCountry() {
-        return getData("SELECT Name, Population FROM country");
-    }
-
-    public static Map<String, Long> getPopulationByDistrict() {
-        return getData("SELECT CONCAT(CountryCode, ' - ', District) AS Name, "
-                + "SUM(Population) AS Population FROM city GROUP BY CountryCode, District");
-    }
-
-    public static Map<String, Long> getPopulationByCity() {
-        return getData("SELECT CONCAT(Name, ' (', ID, ')') AS Name, Population FROM city");
-    }
-
-    private static Map<String, Long> getData(String sql) {
-
-        Map<String, Long> data = new LinkedHashMap<>();
-
-        try {
-            Connection con = DatabaseConnection.getConnection();
-            if (con == null) return data;
-
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-
-            while (rs.next()) {
-                data.put(rs.getString("Name"), rs.getLong("Population"));
-            }
-
-            rs.close();
-            stmt.close();
-
-        } catch (SQLException e) {
-            System.out.println("Database error.");
-        }
-
-        return data;
-    }
-
-    public static void displayPopulation(Map<String, Long> data) {
-
-        for (String name : data.keySet()) {
-            System.out.println(name + " | " + data.get(name));
+            System.out.println(
+                    p.getName() + " | " +
+                    p.getTotalPopulation() + " | " +
+                    p.getUrbanPopulation() + " | " +
+                    p.getRuralPopulation() + " | " +
+                    p.getUrbanPercentage() + "% | " +
+                    p.getRuralPercentage() + "%"
+            );
         }
     }
 
     public static void main(String[] args) {
 
-        System.out.println("Population by Country");
-        displayComposition(getCountryPopulationComposition());
+        System.out.println("Country Population");
+        display(getCountryPopulationComposition());
 
-        System.out.println("\nPopulation by Continent");
-        displayComposition(getContinentPopulationComposition());
+        System.out.println("\nContinent Population");
+        display(getContinentPopulationComposition());
 
-        System.out.println("\nPopulation by Region");
-        displayComposition(getRegionPopulationComposition());
+        System.out.println("\nRegion Population");
+        display(getRegionPopulationComposition());
 
-        System.out.println("\nWorld Population");
-        displayPopulation(getWorldPopulation());
-
-        System.out.println("\nPopulation by Continent");
-        displayPopulation(getPopulationByContinent());
-
-        System.out.println("\nPopulation by Region");
-        displayPopulation(getPopulationByRegion());
-
-        System.out.println("\nPopulation by Country");
-        displayPopulation(getPopulationByCountry());
-
-        System.out.println("\nPopulation by District");
-        displayPopulation(getPopulationByDistrict());
-
-        System.out.println("\nPopulation by City");
-        displayPopulation(getPopulationByCity());
-
-        DatabaseConnection.Disconnect();
+        DatabaseConnection.disconnect();
     }
 }
