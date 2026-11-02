@@ -58,7 +58,6 @@ public class PopulationReport {
 
         return getComposition(sql);
     }
-s
     private static List<PopulationComposition> getComposition(String sql) {
 
         List<PopulationComposition> list = new ArrayList<>();
