@@ -3,8 +3,8 @@ package org.example;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,40 +14,28 @@ public class PopulationReport {
     public static List<PopulationComposition> getCountryPopulationComposition() {
         List<PopulationComposition> list = new ArrayList<>();
 
+        String query =
+                "SELECT c.Name AS CountryName, c.Population AS TotalPop, " +
+                        "COALESCE(SUM(ci.Population), 0) AS UrbanPop " +
+                        "FROM country c " +
+                        "LEFT JOIN city ci ON c.Code = ci.CountryCode " +
+                        "GROUP BY c.Code, c.Name, c.Population " +
+                        "ORDER BY c.Population DESC";
+
         try {
             Connection con = DatabaseConnection.getConnection();
             if (con == null) return list;
 
-            Statement stmt = con.createStatement();
+            try (Statement stmt = con.createStatement();
+                 ResultSet rs = stmt.executeQuery(query)) {
 
-            String query =
-                    "SELECT c.Name AS CountryName, c.Population AS TotalPop, " +
-                            "COALESCE(SUM(ci.Population), 0) AS UrbanPop " +
-                            "FROM country c " +
-                            "LEFT JOIN city ci ON c.Code = ci.CountryCode " +
-                            "GROUP BY c.Code, c.Name, c.Population " +
-                            "ORDER BY c.Population DESC";
-
-            ResultSet rs = stmt.executeQuery(query);
-
-            while (rs.next()) {
-                long total = rs.getLong("TotalPop");
-                long urban = rs.getLong("UrbanPop");
-                long rural = Math.max(0, total - urban);
-
-                PopulationComposition p = new PopulationComposition();
-                p.setName(rs.getString("CountryName"));
-                p.setTotalPopulation(total);
-                p.setUrbanPopulation(urban);
-                p.setRuralPopulation(rural);
-                p.setUrbanPercentage(total > 0 ? urban * 100.0 / total : 0);
-                p.setRuralPercentage(total > 0 ? rural * 100.0 / total : 0);
-
-                list.add(p);
+                while (rs.next()) {
+                    list.add(buildComposition(
+                            rs.getString("CountryName"),
+                            rs.getLong("TotalPop"),
+                            rs.getLong("UrbanPop")));
+                }
             }
-
-            rs.close();
-            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -57,16 +45,14 @@ public class PopulationReport {
 
     // Continent population report
     public static List<PopulationComposition> getContinentPopulationComposition() {
-        List<PopulationComposition> list = new ArrayList<>();
-
         String query =
                 "SELECT c.Continent AS Name, " +
                         "SUM(c.Population) AS TotalPop, " +
                         "COALESCE(SUM(city_pop.UrbanPop), 0) AS UrbanPop " +
                         "FROM country c " +
                         "LEFT JOIN (" +
-                        "  SELECT CountryCode, SUM(Population) AS UrbanPop " +
-                        "  FROM city GROUP BY CountryCode" +
+                        " SELECT CountryCode, SUM(Population) AS UrbanPop " +
+                        " FROM city GROUP BY CountryCode" +
                         ") city_pop ON c.Code = city_pop.CountryCode " +
                         "GROUP BY c.Continent " +
                         "ORDER BY TotalPop DESC";
@@ -82,8 +68,8 @@ public class PopulationReport {
                         "COALESCE(SUM(city_pop.UrbanPop), 0) AS UrbanPop " +
                         "FROM country c " +
                         "LEFT JOIN (" +
-                        "  SELECT CountryCode, SUM(Population) AS UrbanPop " +
-                        "  FROM city GROUP BY CountryCode" +
+                        " SELECT CountryCode, SUM(Population) AS UrbanPop " +
+                        " FROM city GROUP BY CountryCode" +
                         ") city_pop ON c.Code = city_pop.CountryCode " +
                         "GROUP BY c.Region " +
                         "ORDER BY TotalPop DESC";
@@ -99,32 +85,51 @@ public class PopulationReport {
             Connection con = DatabaseConnection.getConnection();
             if (con == null) return list;
 
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+            try (Statement stmt = con.createStatement();
+                 ResultSet rs = stmt.executeQuery(query)) {
 
-            while (rs.next()) {
-                long total = rs.getLong("TotalPop");
-                long urban = rs.getLong("UrbanPop");
-                long rural = Math.max(0, total - urban);
-
-                PopulationComposition p = new PopulationComposition();
-                p.setName(rs.getString("Name"));
-                p.setTotalPopulation(total);
-                p.setUrbanPopulation(urban);
-                p.setRuralPopulation(rural);
-                p.setUrbanPercentage(total > 0 ? urban * 100.0 / total : 0);
-                p.setRuralPercentage(total > 0 ? rural * 100.0 / total : 0);
-
-                list.add(p);
+                while (rs.next()) {
+                    list.add(buildComposition(
+                            rs.getString("Name"),
+                            rs.getLong("TotalPop"),
+                            rs.getLong("UrbanPop")));
+                }
             }
-
-            rs.close();
-            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    /**
+     * Builds a PopulationComposition from raw totals.
+     * Kept separate from database code so it can be unit tested.
+     * Urban percentage is capped at 100 because some countries
+     * have more city population than country population in the dataset.
+     */
+    static PopulationComposition buildComposition(
+            String name, long totalPop, long urbanPop) {
+
+        long ruralPop = Math.max(0, totalPop - urbanPop);
+
+        double urbanPct = totalPop > 0
+                ? Math.min(100.0, (double) urbanPop / totalPop * 100.0)
+                : 0.0;
+
+        double ruralPct = totalPop > 0
+                ? (double) ruralPop / totalPop * 100.0
+                : 0.0;
+
+        PopulationComposition comp = new PopulationComposition();
+        comp.setName(name);
+        comp.setTotalPopulation(totalPop);
+        comp.setUrbanPopulation(urbanPop);
+        comp.setUrbanPercentage(urbanPct);
+        comp.setRuralPopulation(ruralPop);
+        comp.setRuralPercentage(ruralPct);
+
+        return comp;
     }
 
     public static void displayComposition(List<PopulationComposition> list) {
