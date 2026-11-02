@@ -39,3 +39,7 @@ mvn clean test
    git clone https://github.com/MoxxiT/set08103-team7-pipeline.git
    cd set08103-team7-pipeline
    ```
+## Assumptions
+- Population of a district = sum of the populations of the cities recorded in that district (the database has no district table).
+- City names are not unique (e.g. three cities called Valencia). getCityPopulation(name) returns the largest match; use getCityPopulation(name, country) to be specific.
+- Top N reports return an empty list when N is zero or negative.
