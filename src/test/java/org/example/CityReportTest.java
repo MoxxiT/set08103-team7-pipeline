@@ -1,22 +1,27 @@
 package org.example;
 
-import org.example.model.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CityReportTest {
 
     @Test
-    void testCityReportInstantiation() {
+    void testCityReport() {
         CityReport report = new CityReport();
-        assertNotNull(report, "CityReport should instantiate successfully");
+        assertNotNull(report);
     }
 
     @Test
-    void testCityReportEdgeCases() {
-        CityReport report = new CityReport();
-        assertDoesNotThrow(() -> {
-            assertNotNull(report);
-        });
+    void testInvalidInputs() {
+        assertTrue(CityReport.getCitiesByContinent("").isEmpty());
+        assertTrue(CityReport.getCitiesByRegion("").isEmpty());
+        assertTrue(CityReport.getCitiesByCountry("").isEmpty());
+        assertTrue(CityReport.getCitiesByDistrict("").isEmpty());
+    }
+
+    @Test
+    void testTopN() {
+        assertTrue(CityReport.getTopNCitiesInWorld(0).isEmpty());
+        assertTrue(CityReport.getTopNCitiesInWorld(-1).isEmpty());
     }
 }

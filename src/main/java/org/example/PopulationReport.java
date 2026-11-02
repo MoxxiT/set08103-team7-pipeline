@@ -2,160 +2,168 @@
 package org.example;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PopulationReport {
 
-    // Country population report
     public static List<PopulationComposition> getCountryPopulationComposition() {
-        List<PopulationComposition> list = new ArrayList<>();
 
-        String query =
-                "SELECT c.Name AS CountryName, c.Population AS TotalPop, " +
-                        "COALESCE(SUM(ci.Population), 0) AS UrbanPop " +
-                        "FROM country c " +
-                        "LEFT JOIN city ci ON c.Code = ci.CountryCode " +
-                        "GROUP BY c.Code, c.Name, c.Population " +
-                        "ORDER BY c.Population DESC";
+        String sql =
+                "SELECT c.Name AS Name, c.Population AS Total, "
+                + "COALESCE(city_pop.Urban, 0) AS Urban "
+                + "FROM country c "
+                + "LEFT JOIN ("
+                + "SELECT CountryCode, SUM(Population) AS Urban "
+                + "FROM city GROUP BY CountryCode"
+                + ") city_pop ON c.Code = city_pop.CountryCode "
+                + "ORDER BY c.Population DESC";
 
-        try {
-            Connection con = DatabaseConnection.getConnection();
-            if (con == null) return list;
-
-            try (Statement stmt = con.createStatement();
-                 ResultSet rs = stmt.executeQuery(query)) {
-
-                while (rs.next()) {
-                    list.add(buildComposition(
-                            rs.getString("CountryName"),
-                            rs.getLong("TotalPop"),
-                            rs.getLong("UrbanPop")));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        return getComposition(sql);
     }
 
-    // Continent population report
     public static List<PopulationComposition> getContinentPopulationComposition() {
-        String query =
-                "SELECT c.Continent AS Name, " +
-                        "SUM(c.Population) AS TotalPop, " +
-                        "COALESCE(SUM(city_pop.UrbanPop), 0) AS UrbanPop " +
-                        "FROM country c " +
-                        "LEFT JOIN (" +
-                        " SELECT CountryCode, SUM(Population) AS UrbanPop " +
-                        " FROM city GROUP BY CountryCode" +
-                        ") city_pop ON c.Code = city_pop.CountryCode " +
-                        "GROUP BY c.Continent " +
-                        "ORDER BY TotalPop DESC";
 
-        return getPopulationComposition(query);
+        String sql =
+                "SELECT c.Continent AS Name, "
+                + "SUM(c.Population) AS Total, "
+                + "SUM(COALESCE(city_pop.Urban, 0)) AS Urban "
+                + "FROM country c "
+                + "LEFT JOIN ("
+                + "SELECT CountryCode, SUM(Population) AS Urban "
+                + "FROM city GROUP BY CountryCode"
+                + ") city_pop ON c.Code = city_pop.CountryCode "
+                + "GROUP BY c.Continent "
+                + "ORDER BY Total DESC";
+
+        return getComposition(sql);
     }
 
-    // Region population report
     public static List<PopulationComposition> getRegionPopulationComposition() {
-        String query =
-                "SELECT c.Region AS Name, " +
-                        "SUM(c.Population) AS TotalPop, " +
-                        "COALESCE(SUM(city_pop.UrbanPop), 0) AS UrbanPop " +
-                        "FROM country c " +
-                        "LEFT JOIN (" +
-                        " SELECT CountryCode, SUM(Population) AS UrbanPop " +
-                        " FROM city GROUP BY CountryCode" +
-                        ") city_pop ON c.Code = city_pop.CountryCode " +
-                        "GROUP BY c.Region " +
-                        "ORDER BY TotalPop DESC";
 
-        return getPopulationComposition(query);
+        String sql =
+                "SELECT c.Region AS Name, "
+                + "SUM(c.Population) AS Total, "
+                + "SUM(COALESCE(city_pop.Urban, 0)) AS Urban "
+                + "FROM country c "
+                + "LEFT JOIN ("
+                + "SELECT CountryCode, SUM(Population) AS Urban "
+                + "FROM city GROUP BY CountryCode"
+                + ") city_pop ON c.Code = city_pop.CountryCode "
+                + "GROUP BY c.Region "
+                + "ORDER BY Total DESC";
+
+        return getComposition(sql);
     }
+s
+    private static List<PopulationComposition> getComposition(String sql) {
 
-    // Shared helper for continent and region reports
-    private static List<PopulationComposition> getPopulationComposition(String query) {
         List<PopulationComposition> list = new ArrayList<>();
 
-        try {
-            Connection con = DatabaseConnection.getConnection();
-            if (con == null) return list;
+        Connection con = DatabaseConnection.getConnection();
 
-            try (Statement stmt = con.createStatement();
-                 ResultSet rs = stmt.executeQuery(query)) {
+        if (con == null) {
+            System.err.println("Database connection failed.");
+            return list;
+        }
 
-                while (rs.next()) {
-                    list.add(buildComposition(
-                            rs.getString("Name"),
-                            rs.getLong("TotalPop"),
-                            rs.getLong("UrbanPop")));
-                }
+        try (PreparedStatement stmt = con.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+
+                list.add(buildComposition(
+                        rs.getString("Name"),
+                        rs.getLong("Total"),
+                        rs.getLong("Urban")
+                ));
             }
+
         } catch (SQLException e) {
+            System.err.println("Error retrieving population composition:");
             e.printStackTrace();
         }
 
         return list;
     }
 
-    /**
-     * Builds a PopulationComposition from raw totals.
-     * Kept separate from database code so it can be unit tested.
-     * Urban percentage is capped at 100 because some countries
-     * have more city population than country population in the dataset.
-     */
-    static PopulationComposition buildComposition(
-            String name, long totalPop, long urbanPop) {
+    public static PopulationComposition buildComposition(
+            String name, long total, long urban) {
 
-        long ruralPop = Math.max(0, totalPop - urbanPop);
+        // Prevent negative population values
+        if (total < 0) {
+            total = 0;
+        }
 
-        double urbanPct = totalPop > 0
-                ? Math.min(100.0, (double) urbanPop / totalPop * 100.0)
-                : 0.0;
+        if (urban < 0) {
+            urban = 0;
+        }
 
-        double ruralPct = totalPop > 0
-                ? (double) ruralPop / totalPop * 100.0
-                : 0.0;
+        if (urban > total) {
+            urban = total;
+        }
 
-        PopulationComposition comp = new PopulationComposition();
-        comp.setName(name);
-        comp.setTotalPopulation(totalPop);
-        comp.setUrbanPopulation(urbanPop);
-        comp.setUrbanPercentage(urbanPct);
-        comp.setRuralPopulation(ruralPop);
-        comp.setRuralPercentage(ruralPct);
+        long rural = total - urban;
 
-        return comp;
+        double urbanPercentage = 0;
+        double ruralPercentage = 0;
+
+        if (total > 0) {
+            urbanPercentage = (urban * 100.0) / total;
+            ruralPercentage = (rural * 100.0) / total;
+        }
+
+        PopulationComposition composition = new PopulationComposition();
+
+        composition.setName(name);
+        composition.setTotalPopulation(total);
+        composition.setUrbanPopulation(urban);
+        composition.setRuralPopulation(rural);
+        composition.setUrbanPercentage(urbanPercentage);
+        composition.setRuralPercentage(ruralPercentage);
+
+        return composition;
     }
 
-    public static void displayComposition(List<PopulationComposition> list) {
-        System.out.printf("%-35s | %-15s | %-18s | %-18s%n",
-                "Country Name", "Total Pop", "Living in Cities", "Not in Cities");
+    public static void displayComposition(
+            List<PopulationComposition> list) {
 
-        System.out.println("-".repeat(95));
+        System.out.printf(
+                "%-35s | %-15s | %-15s | %-15s | %-10s | %-10s%n",
+                "Name", "Total", "Urban", "Rural",
+                "Urban %", "Rural %"
+        );
+
+        System.out.println("-".repeat(115));
 
         for (PopulationComposition p : list) {
-            System.out.printf("%-35s | %-15d | %-10d (%5.1f%%) | %-10d (%5.1f%%)%n",
+
+            System.out.printf(
+                    "%-35s | %-15d | %-15d | %-15d | %-9.2f%% | %-9.2f%%%n",
                     p.getName(),
                     p.getTotalPopulation(),
                     p.getUrbanPopulation(),
-                    p.getUrbanPercentage(),
                     p.getRuralPopulation(),
-                    p.getRuralPercentage());
+                    p.getUrbanPercentage(),
+                    p.getRuralPercentage()
+            );
         }
     }
 
     public static void main(String[] args) {
-        System.out.println("Fetching Country Population Composition Report...");
 
-        List<PopulationComposition> report =
-                getCountryPopulationComposition();
+        System.out.println("Population Composition by Country");
+        displayComposition(getCountryPopulationComposition());
 
-        displayComposition(report);
+        System.out.println("\nPopulation Composition by Continent");
+        displayComposition(getContinentPopulationComposition());
+
+        System.out.println("\nPopulation Composition by Region");
+        displayComposition(getRegionPopulationComposition());
+
         DatabaseConnection.disconnect();
     }
 }
