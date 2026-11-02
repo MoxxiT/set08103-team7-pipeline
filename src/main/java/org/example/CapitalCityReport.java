@@ -43,7 +43,85 @@ public class CapitalCityReport {
         }
         return capitalCities;
     }
+    // Capital cities in a continent, sorted by population
+    public static List<CapitalCity> getCapitalCitiesByContinent(String continent) {
+        return getCapitalCities(continent, true, 0);
+    }
 
+    // Capital cities in a region, sorted by population
+    public static List<CapitalCity> getCapitalCitiesByRegion(String region) {
+        return getCapitalCities(region, false, 0);
+    }
+
+    // Top N capital cities in a continent
+    public static List<CapitalCity> getTopNCapitalCitiesByContinent(
+            String continent, int n) {
+        return getCapitalCities(continent, true, n);
+    }
+
+    // Top N capital cities in a region
+    public static List<CapitalCity> getTopNCapitalCitiesByRegion(
+            String region, int n) {
+        return getCapitalCities(region, false, n);
+    }
+
+    // Shared database query
+    private static List<CapitalCity> getCapitalCities(
+            String location, boolean isContinent, int limit) {
+
+        List<CapitalCity> capitals = new ArrayList<>();
+
+        if (location == null || location.isBlank() || limit < 0) {
+            return capitals;
+        }
+
+        String column = isContinent ? "Continent" : "Region";
+
+        String sql = "SELECT city.Name, country.Name AS Country, "
+                + "city.Population FROM country "
+                + "JOIN city ON country.Capital = city.ID "
+                + "WHERE country." + column + " = ? "
+                + "ORDER BY city.Population DESC";
+
+        if (limit > 0) {
+            sql += " LIMIT ?";
+        }
+
+        try {
+            Connection con = DatabaseConnection.getConnection();
+
+            if (con == null) {
+                return capitals;
+            }
+
+            try (java.sql.PreparedStatement stmt =
+                         con.prepareStatement(sql)) {
+
+                stmt.setString(1, location);
+
+                if (limit > 0) {
+                    stmt.setInt(2, limit);
+                }
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        CapitalCity city = new CapitalCity();
+
+                        city.setName(rs.getString("Name"));
+                        city.setCountry(rs.getString("Country"));
+                        city.setPopulation(rs.getLong("Population"));
+
+                        capitals.add(city);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to fetch capital cities: "
+                    + e.getMessage());
+        }
+
+        return capitals;
+    }
     public static void displayCapitalCities(List<CapitalCity> capitalCities) {
         System.out.printf("%-30s | %-30s | %-12s%n",
                 "Capital City Name", "Country", "Population");
