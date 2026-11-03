@@ -1,22 +1,36 @@
-
 package org.example;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class CapitalCityReportTest {
 
-    @Test
-    void testCapitalCityReportInstantiation() {
-        CapitalCityReport report = new CapitalCityReport();
-        assertNotNull(report);
+    @BeforeAll
+    static void requireDatabase() {
+        boolean available = DatabaseConnection.getConnection() != null;
+        if (!available && System.getenv("CI") != null) {
+            fail("The database must be available in CI");
+        }
+        assumeTrue(available, "No local database running - skipping database tests");
+    }
+
+    @AfterAll
+    static void closeDatabase() {
+        DatabaseConnection.disconnect();
     }
 
     @Test
-    void testCapitalCityReportEdgeCases() {
-        assertDoesNotThrow(() -> new CapitalCityReport());
+    void testWorldCapitalCitiesAreAllReturnedLargestFirst() {
+        List<CapitalCity> capitals = CapitalCityReport.getWorldCapitalCitiesByPopulation();
+
+        assertEquals(232, capitals.size());
+        assertEquals("Seoul", capitals.get(0).getName());
+        assertEquals(9981619, capitals.get(0).getPopulation());
     }
 
     @Test
@@ -38,6 +52,7 @@ public class CapitalCityReportTest {
                 CapitalCityReport.getTopNCapitalCitiesByContinent("Europe", 5);
 
         assertEquals(5, capitals.size());
+        assertEquals("Moscow", capitals.get(0).getName());
 
         for (int i = 1; i < capitals.size(); i++) {
             assertTrue(capitals.get(i - 1).getPopulation()
