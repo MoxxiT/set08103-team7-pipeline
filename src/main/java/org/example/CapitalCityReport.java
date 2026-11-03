@@ -53,15 +53,64 @@ public class CapitalCityReport {
         return getCapitalCities(region, false, 0);
     }
 
-    // Top N capital cities in a continent
+    /**
+     * Gets the top N most populated capital cities in the world.
+     * Returns an empty list when n is zero or negative.
+     */
+    public static List<CapitalCity> getTopNCapitalCitiesInWorld(int n) {
+        List<CapitalCity> capitals = new ArrayList<>();
+        if (n <= 0) {
+            return capitals;
+        }
+
+        String sql = "SELECT city.Name, country.Name AS Country, "
+                + "city.Population FROM country "
+                + "JOIN city ON country.Capital = city.ID "
+                + "ORDER BY city.Population DESC, city.Name ASC "
+                + "LIMIT ?";
+
+        try {
+            Connection con = DatabaseConnection.getConnection();
+            if (con == null) {
+                return capitals;
+            }
+
+            try (java.sql.PreparedStatement stmt = con.prepareStatement(sql)) {
+                stmt.setInt(1, n);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        CapitalCity city = new CapitalCity();
+                        city.setName(rs.getString("Name"));
+                        city.setCountry(rs.getString("Country"));
+                        city.setPopulation(rs.getLong("Population"));
+                        capitals.add(city);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to fetch top N world capital cities: "
+                    + e.getMessage());
+        }
+
+        return capitals;
+    }
+
+    // Top N capital cities in a continent (empty when n is zero or negative)
     public static List<CapitalCity> getTopNCapitalCitiesByContinent(
             String continent, int n) {
+        if (n <= 0) {
+            return new ArrayList<>();
+        }
         return getCapitalCities(continent, true, n);
     }
 
-    // Top N capital cities in a region
+    // Top N capital cities in a region (empty when n is zero or negative)
     public static List<CapitalCity> getTopNCapitalCitiesByRegion(
             String region, int n) {
+        if (n <= 0) {
+            return new ArrayList<>();
+        }
         return getCapitalCities(region, false, n);
     }
 
@@ -136,6 +185,9 @@ public class CapitalCityReport {
         System.out.println("Fetching capital cities in the world by largest population to smallest...");
         List<CapitalCity> capitalCities = getWorldCapitalCitiesByPopulation();
         displayCapitalCities(capitalCities);
+
+        System.out.println("\nTop 5 capital cities in the world...");
+        displayCapitalCities(getTopNCapitalCitiesInWorld(5));
         DatabaseConnection.disconnect();
     }
 }
