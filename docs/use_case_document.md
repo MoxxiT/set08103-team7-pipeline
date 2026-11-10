@@ -15,7 +15,7 @@ This document defines the system use cases and architectural actors for the Popu
 * **Preconditions:** 
   1. The MySQL database (`world`) is running and accessible.
   2. The application establishes a successful database connection via `DatabaseConnection`.
-* **Trigger:** The user executes `CountryReport.main()` or invokes world/continent/region report methods.
+* **Trigger:** The user executes `Main.main()` (the JAR's entry point), `CountryReport.main()`, or invokes world/continent/region report methods.
 * **Main Flow of Events:**
   1. The user selects the country report criteria (e.g., world, continent, region, or top $N$).
   2. The system initiates connection via `DatabaseConnection.getConnection()`.

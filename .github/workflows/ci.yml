@@ -46,10 +46,21 @@ jobs:
         run: mvn -B clean verify
 
       - name: Upload JaCoCo Coverage Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-coverage-report
           path: target/site/jacoco/
+          if-no-files-found: warn
+
+      - name: Generate Javadoc
+        run: mvn -B javadoc:javadoc
+
+      - name: Upload Javadoc
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadoc
+          path: target/site/apidocs/
 
       - name: Run Docker Compose stack
         run: docker compose up --build --abort-on-container-exit --exit-code-from app
