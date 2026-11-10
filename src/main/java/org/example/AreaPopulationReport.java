@@ -22,42 +22,83 @@ import java.sql.SQLException;
  */
 public class AreaPopulationReport {
 
-    /** The population of the world. */
+    /** Not used: this is a utility class with only static methods, so it is never instantiated. */
+    private AreaPopulationReport() {
+    }
+
+    /**
+     * Gets the population of the world.
+     *
+     * @return the world population
+     */
     public static long getWorldPopulation() {
         return queryPopulation("SELECT SUM(Population) FROM country");
     }
 
-    /** The population of a continent. */
+    /**
+     * Gets the population of a continent.
+     *
+     * @param continent the continent name, e.g. "Europe"
+     * @return the population, or 0 if the continent is null, blank or unknown
+     */
     public static long getContinentPopulation(String continent) {
         if (isBlank(continent)) return 0;
         return queryPopulation("SELECT SUM(Population) FROM country WHERE Continent = ?", continent);
     }
 
-    /** The population of a region. */
+    /**
+     * Gets the population of a region.
+     *
+     * @param region the region name, e.g. "Western Europe"
+     * @return the population, or 0 if the region is null, blank or unknown
+     */
     public static long getRegionPopulation(String region) {
         if (isBlank(region)) return 0;
         return queryPopulation("SELECT SUM(Population) FROM country WHERE Region = ?", region);
     }
 
-    /** The population of a country (matched by country name). */
+    /**
+     * Gets the population of a country (matched by country name).
+     *
+     * @param country the country name, e.g. "Japan"
+     * @return the population, or 0 if the country is null, blank or unknown
+     */
     public static long getCountryPopulation(String country) {
         if (isBlank(country)) return 0;
         return queryPopulation("SELECT SUM(Population) FROM country WHERE Name = ?", country);
     }
 
-    /** The population of a district: the sum of the cities recorded in it. */
+    /**
+     * Gets the population of a district: the sum of the cities recorded in it.
+     *
+     * @param district the district name, e.g. "California"
+     * @return the population, or 0 if the district is null, blank or unknown
+     */
     public static long getDistrictPopulation(String district) {
         if (isBlank(district)) return 0;
         return queryPopulation("SELECT SUM(Population) FROM city WHERE District = ?", district);
     }
 
-    /** The population of a city. If several cities share the name, the largest one is returned. */
+    /**
+     * Gets the population of a city. If several cities share the name, the
+     * largest one is returned.
+     *
+     * @param city the city name, e.g. "Tokyo"
+     * @return the population, or 0 if the city is null, blank or unknown
+     */
     public static long getCityPopulation(String city) {
         if (isBlank(city)) return 0;
         return queryPopulation("SELECT MAX(Population) FROM city WHERE Name = ?", city);
     }
 
-    /** The population of a city in a specific country (use this when the name is ambiguous). */
+    /**
+     * Gets the population of a city in a specific country. Use this when the
+     * city name is shared by cities in different countries.
+     *
+     * @param city    the city name, e.g. "Valencia"
+     * @param country the country name, e.g. "Spain"
+     * @return the population, or 0 if either argument is null, blank or unknown
+     */
     public static long getCityPopulation(String city, String country) {
         if (isBlank(city) || isBlank(country)) return 0;
         return queryPopulation("SELECT MAX(ci.Population) FROM city ci "
@@ -68,6 +109,10 @@ public class AreaPopulationReport {
     /**
      * Runs a query that returns a single number. SUM and MAX return NULL when nothing
      * matches, which getLong turns into 0, so unknown areas give 0.
+     *
+     * @param sql    the SQL query, using ? for each parameter
+     * @param params the values for the ? placeholders, in order
+     * @return the number returned by the query, or 0 on no match or error
      */
     private static long queryPopulation(String sql, Object... params) {
         Connection con = DatabaseConnection.getConnection();
@@ -90,14 +135,31 @@ public class AreaPopulationReport {
         }
     }
 
+    /**
+     * Checks whether a string is null, empty or only whitespace.
+     *
+     * @param value the string to check
+     * @return true if the value is null or blank
+     */
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
 
+    /**
+     * Prints one area and its population as a row of the population table.
+     *
+     * @param area       the label to show for the area
+     * @param population the population to show
+     */
     public static void displayPopulation(String area, long population) {
         System.out.printf("%-25s | %,15d%n", area, population);
     }
 
+    /**
+     * Runs an example of each population lookup and prints the results.
+     *
+     * @param args not used
+     */
     public static void main(String[] args) {
         System.out.printf("%-25s | %15s%n", "Area", "Population");
         System.out.println("-".repeat(43));

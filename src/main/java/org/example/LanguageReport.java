@@ -7,11 +7,24 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Language report: the number of people who speak Chinese, English, Hindi, Spanish
+ * and Arabic, and what percentage of the world population that is.
+ *
+ * A country's speakers of a language are estimated as the country's population
+ * multiplied by the percentage of the country that speaks it (countrylanguage.Percentage).
+ */
 public class LanguageReport {
+
+    /** Not used: this is a utility class with only static methods, so it is never instantiated. */
+    private LanguageReport() {
+    }
 
     /**
      * Gets the language statistics report for Chinese, English, Hindi, Spanish, and Arabic,
      * ordered from greatest number of speakers to smallest, including the percentage of the world population.
+     *
+     * @return one entry per language, or an empty list if the database cannot be queried
      */
     public static List<Language> getLanguageStatistics() {
         List<Language> languages = new ArrayList<>();
@@ -72,6 +85,11 @@ public class LanguageReport {
         return languages;
     }
 
+    /**
+     * Prints the language statistics as a table.
+     *
+     * @param languages the language statistics to print
+     */
     public static void displayLanguageStatistics(List<Language> languages) {
         System.out.printf("%-15s | %-20s | %-25s%n",
                 "Language", "Total Speakers", "Percentage of World Pop (%)");
@@ -82,6 +100,11 @@ public class LanguageReport {
         }
     }
 
+    /**
+     * Runs the language report and prints the results.
+     *
+     * @param args not used
+     */
     public static void main(String[] args) {
         System.out.println("Fetching language statistics report...");
         List<Language> languages = getLanguageStatistics();

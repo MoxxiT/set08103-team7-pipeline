@@ -17,18 +17,28 @@ import java.util.List;
  */
 public class CountryReport {
 
-    // The Capital column holds a city ID, so we join the city table to get the capital's name.
-    // LEFT JOIN keeps countries with no capital (e.g. Antarctica); COALESCE shows "N/A" for them.
+    /** Not used: this is a utility class with only static methods, so it is never instantiated. */
+    private CountryReport() {
+    }
+
+    /**
+     * Selects the columns required by the brief. The Capital column holds a city ID, so the
+     * city table is joined to get the capital's name. LEFT JOIN keeps countries with no
+     * capital (e.g. Antarctica) and COALESCE shows "N/A" for them.
+     */
     private static final String SELECT_COUNTRIES =
             "SELECT c.Code, c.Name, c.Continent, c.Region, c.Population, "
                     + "COALESCE(cap.Name, 'N/A') AS Capital "
                     + "FROM country c "
                     + "LEFT JOIN city cap ON c.Capital = cap.ID ";
 
+    /** Orders by population, largest first, with ties broken alphabetically. */
     private static final String ORDER_BY_POPULATION = "ORDER BY c.Population DESC, c.Name ASC ";
 
     /**
      * Gets all the countries in the world organised by largest population to smallest.
+     *
+     * @return the countries, or an empty list if the database cannot be queried
      */
     public static List<Country> getWorldCountriesByPopulation() {
         return queryCountries(SELECT_COUNTRIES + ORDER_BY_POPULATION);
@@ -36,7 +46,9 @@ public class CountryReport {
 
     /**
      * Gets all the countries in a continent organised by largest population to smallest.
-     * Returns an empty list if the continent is null, blank or unknown.
+     *
+     * @param continent the continent name, e.g. "Europe"
+     * @return the countries, or an empty list if the continent is null, blank or unknown
      */
     public static List<Country> getCountriesByContinent(String continent) {
         if (isBlank(continent)) return new ArrayList<>();
@@ -45,7 +57,9 @@ public class CountryReport {
 
     /**
      * Gets all the countries in a region organised by largest population to smallest.
-     * Returns an empty list if the region is null, blank or unknown.
+     *
+     * @param region the region name, e.g. "Western Europe"
+     * @return the countries, or an empty list if the region is null, blank or unknown
      */
     public static List<Country> getCountriesByRegion(String region) {
         if (isBlank(region)) return new ArrayList<>();
@@ -54,7 +68,9 @@ public class CountryReport {
 
     /**
      * Gets the top N populated countries in the world.
-     * Returns an empty list if n is zero or negative.
+     *
+     * @param n how many countries to return
+     * @return up to n countries, or an empty list if n is zero or negative
      */
     public static List<Country> getTopNCountriesInWorld(int n) {
         if (n <= 0) return new ArrayList<>();
@@ -63,7 +79,11 @@ public class CountryReport {
 
     /**
      * Gets the top N populated countries in a continent.
-     * Returns an empty list if the continent is null/blank/unknown or n is zero or negative.
+     *
+     * @param continent the continent name, e.g. "Europe"
+     * @param n         how many countries to return
+     * @return up to n countries, or an empty list if the continent is null/blank/unknown
+     *         or n is zero or negative
      */
     public static List<Country> getTopNCountriesByContinent(String continent, int n) {
         if (isBlank(continent) || n <= 0) return new ArrayList<>();
@@ -73,7 +93,11 @@ public class CountryReport {
 
     /**
      * Gets the top N populated countries in a region.
-     * Returns an empty list if the region is null/blank/unknown or n is zero or negative.
+     *
+     * @param region the region name, e.g. "Western Europe"
+     * @param n      how many countries to return
+     * @return up to n countries, or an empty list if the region is null/blank/unknown
+     *         or n is zero or negative
      */
     public static List<Country> getTopNCountriesByRegion(String region, int n) {
         if (isBlank(region) || n <= 0) return new ArrayList<>();
@@ -84,6 +108,10 @@ public class CountryReport {
     /**
      * Runs a country query with the given parameters and maps each row to a Country.
      * All the reports above share this method so the JDBC code is written only once.
+     *
+     * @param sql    the SQL query, using ? for each parameter
+     * @param params the values for the ? placeholders, in order
+     * @return the countries returned by the query, or an empty list on error
      */
     private static List<Country> queryCountries(String sql, Object... params) {
         List<Country> countries = new ArrayList<>();
@@ -116,10 +144,21 @@ public class CountryReport {
         return countries;
     }
 
+    /**
+     * Checks whether a string is null, empty or only whitespace.
+     *
+     * @param value the string to check
+     * @return true if the value is null or blank
+     */
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
 
+    /**
+     * Prints a list of countries as a table.
+     *
+     * @param countries the countries to print
+     */
     public static void displayCountries(List<Country> countries) {
         System.out.printf("%-5s | %-35s | %-15s | %-25s | %-12s | %-25s%n",
                 "Code", "Name", "Continent", "Region", "Population", "Capital");
@@ -130,6 +169,11 @@ public class CountryReport {
         }
     }
 
+    /**
+     * Runs example country reports and prints the results.
+     *
+     * @param args not used
+     */
     public static void main(String[] args) {
         System.out.println("Fetching countries in the world by largest population to smallest...");
         displayCountries(getWorldCountriesByPopulation());
