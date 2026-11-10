@@ -1,4 +1,3 @@
-
 package org.example;
 
 import java.sql.Connection;
@@ -8,9 +7,24 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Population reports: for each continent, region or country, the total population,
+ * the number of people living in cities and the number not living in cities.
+ * Each report is ordered from the largest to the smallest total population.
+ *
+ * "Living in cities" is the sum of the populations of the cities recorded for that area.
+ */
 public class PopulationReport {
 
-    // Country population report
+    /** Not used: this is a utility class with only static methods, so it is never instantiated. */
+    private PopulationReport() {
+    }
+
+    /**
+     * Gets the population living in and out of cities for every country.
+     *
+     * @return one entry per country, or an empty list if the database cannot be queried
+     */
     public static List<PopulationComposition> getCountryPopulationComposition() {
         List<PopulationComposition> list = new ArrayList<>();
 
@@ -43,7 +57,11 @@ public class PopulationReport {
         return list;
     }
 
-    // Continent population report
+    /**
+     * Gets the population living in and out of cities for every continent.
+     *
+     * @return one entry per continent, or an empty list if the database cannot be queried
+     */
     public static List<PopulationComposition> getContinentPopulationComposition() {
         String query =
                 "SELECT c.Continent AS Name, " +
@@ -60,7 +78,11 @@ public class PopulationReport {
         return getPopulationComposition(query);
     }
 
-    // Region population report
+    /**
+     * Gets the population living in and out of cities for every region.
+     *
+     * @return one entry per region, or an empty list if the database cannot be queried
+     */
     public static List<PopulationComposition> getRegionPopulationComposition() {
         String query =
                 "SELECT c.Region AS Name, " +
@@ -77,7 +99,13 @@ public class PopulationReport {
         return getPopulationComposition(query);
     }
 
-    // Shared helper for continent and region reports
+    /**
+     * Shared query runner for the continent and region reports. The query must return
+     * the columns Name, TotalPop and UrbanPop.
+     *
+     * @param query the SQL query to run
+     * @return one entry per row, or an empty list if the database cannot be queried
+     */
     private static List<PopulationComposition> getPopulationComposition(String query) {
         List<PopulationComposition> list = new ArrayList<>();
 
@@ -107,6 +135,11 @@ public class PopulationReport {
      * Kept separate from database code so it can be unit tested.
      * Urban percentage is capped at 100 because some countries
      * have more city population than country population in the dataset.
+     *
+     * @param name     the continent, region or country name
+     * @param totalPop the total population
+     * @param urbanPop the population living in cities
+     * @return the composition with populations and percentages filled in
      */
     static PopulationComposition buildComposition(
             String name, long totalPop, long urbanPop) {
@@ -132,9 +165,14 @@ public class PopulationReport {
         return comp;
     }
 
+    /**
+     * Prints a population report as a table.
+     *
+     * @param list the population entries to print
+     */
     public static void displayComposition(List<PopulationComposition> list) {
         System.out.printf("%-35s | %-15s | %-18s | %-18s%n",
-                "Country Name", "Total Pop", "Living in Cities", "Not in Cities");
+                "Name", "Total Pop", "Living in Cities", "Not in Cities");
 
         System.out.println("-".repeat(95));
 
@@ -149,6 +187,11 @@ public class PopulationReport {
         }
     }
 
+    /**
+     * Runs the country population report and prints the results.
+     *
+     * @param args not used
+     */
     public static void main(String[] args) {
         System.out.println("Fetching Country Population Composition Report...");
 

@@ -17,18 +17,25 @@ import java.util.List;
  */
 public class CityReport {
 
-    // Columns required by the brief: Name, Country, District, Population.
+    /** Not used: this is a utility class with only static methods, so it is never instantiated. */
+    private CityReport() {
+    }
+
+    /** Selects the columns required by the brief: Name, Country, District, Population. */
     private static final String SELECT_CITIES =
             "SELECT ci.Name, c.Name AS Country, ci.District, ci.Population "
                     + "FROM city ci "
                     + "JOIN country c ON ci.CountryCode = c.Code ";
 
+    /** Orders by population, largest first, with ties broken alphabetically. */
     private static final String ORDER_BY_POPULATION = "ORDER BY ci.Population DESC, ci.Name ASC ";
 
     // ----- all cities -----
 
     /**
      * Gets all the cities in the world organised by largest population to smallest.
+     *
+     * @return the cities, or an empty list if the database cannot be queried
      */
     public static List<City> getWorldCitiesByPopulation() {
         return queryCities(SELECT_CITIES + ORDER_BY_POPULATION);
@@ -36,7 +43,9 @@ public class CityReport {
 
     /**
      * Gets all the cities in a continent organised by largest population to smallest.
-     * Returns an empty list if the continent is null, blank or unknown.
+     *
+     * @param continent the continent name, e.g. "Europe"
+     * @return the cities, or an empty list if the continent is null, blank or unknown
      */
     public static List<City> getCitiesByContinent(String continent) {
         if (isBlank(continent)) return new ArrayList<>();
@@ -45,7 +54,9 @@ public class CityReport {
 
     /**
      * Gets all the cities in a region organised by largest population to smallest.
-     * Returns an empty list if the region is null, blank or unknown.
+     *
+     * @param region the region name, e.g. "Western Europe"
+     * @return the cities, or an empty list if the region is null, blank or unknown
      */
     public static List<City> getCitiesByRegion(String region) {
         if (isBlank(region)) return new ArrayList<>();
@@ -54,7 +65,10 @@ public class CityReport {
 
     /**
      * Gets all the cities in a country (matched by country name) organised by largest
-     * population to smallest. Returns an empty list if the country is null, blank or unknown.
+     * population to smallest.
+     *
+     * @param country the country name, e.g. "Japan"
+     * @return the cities, or an empty list if the country is null, blank or unknown
      */
     public static List<City> getCitiesByCountry(String country) {
         if (isBlank(country)) return new ArrayList<>();
@@ -63,7 +77,9 @@ public class CityReport {
 
     /**
      * Gets all the cities in a district organised by largest population to smallest.
-     * Returns an empty list if the district is null, blank or unknown.
+     *
+     * @param district the district name, e.g. "California"
+     * @return the cities, or an empty list if the district is null, blank or unknown
      */
     public static List<City> getCitiesByDistrict(String district) {
         if (isBlank(district)) return new ArrayList<>();
@@ -74,7 +90,9 @@ public class CityReport {
 
     /**
      * Gets the top N populated cities in the world.
-     * Returns an empty list if n is zero or negative.
+     *
+     * @param n how many cities to return
+     * @return up to n cities, or an empty list if n is zero or negative
      */
     public static List<City> getTopNCitiesInWorld(int n) {
         if (n <= 0) return new ArrayList<>();
@@ -83,7 +101,11 @@ public class CityReport {
 
     /**
      * Gets the top N populated cities in a continent.
-     * Returns an empty list if the continent is null/blank/unknown or n is zero or negative.
+     *
+     * @param continent the continent name, e.g. "Europe"
+     * @param n         how many cities to return
+     * @return up to n cities, or an empty list if the continent is null/blank/unknown
+     *         or n is zero or negative
      */
     public static List<City> getTopNCitiesByContinent(String continent, int n) {
         if (isBlank(continent) || n <= 0) return new ArrayList<>();
@@ -93,7 +115,11 @@ public class CityReport {
 
     /**
      * Gets the top N populated cities in a region.
-     * Returns an empty list if the region is null/blank/unknown or n is zero or negative.
+     *
+     * @param region the region name, e.g. "Western Europe"
+     * @param n      how many cities to return
+     * @return up to n cities, or an empty list if the region is null/blank/unknown
+     *         or n is zero or negative
      */
     public static List<City> getTopNCitiesByRegion(String region, int n) {
         if (isBlank(region) || n <= 0) return new ArrayList<>();
@@ -103,7 +129,11 @@ public class CityReport {
 
     /**
      * Gets the top N populated cities in a country (matched by country name).
-     * Returns an empty list if the country is null/blank/unknown or n is zero or negative.
+     *
+     * @param country the country name, e.g. "Japan"
+     * @param n       how many cities to return
+     * @return up to n cities, or an empty list if the country is null/blank/unknown
+     *         or n is zero or negative
      */
     public static List<City> getTopNCitiesByCountry(String country, int n) {
         if (isBlank(country) || n <= 0) return new ArrayList<>();
@@ -113,7 +143,11 @@ public class CityReport {
 
     /**
      * Gets the top N populated cities in a district.
-     * Returns an empty list if the district is null/blank/unknown or n is zero or negative.
+     *
+     * @param district the district name, e.g. "California"
+     * @param n        how many cities to return
+     * @return up to n cities, or an empty list if the district is null/blank/unknown
+     *         or n is zero or negative
      */
     public static List<City> getTopNCitiesByDistrict(String district, int n) {
         if (isBlank(district) || n <= 0) return new ArrayList<>();
@@ -126,6 +160,10 @@ public class CityReport {
     /**
      * Runs a city query with the given parameters and maps each row to a City.
      * All the reports above share this method so the JDBC code is written only once.
+     *
+     * @param sql    the SQL query, using ? for each parameter
+     * @param params the values for the ? placeholders, in order
+     * @return the cities returned by the query, or an empty list on error
      */
     private static List<City> queryCities(String sql, Object... params) {
         List<City> cities = new ArrayList<>();
@@ -156,10 +194,21 @@ public class CityReport {
         return cities;
     }
 
+    /**
+     * Checks whether a string is null, empty or only whitespace.
+     *
+     * @param value the string to check
+     * @return true if the value is null or blank
+     */
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
 
+    /**
+     * Prints a list of cities as a table.
+     *
+     * @param cities the cities to print
+     */
     public static void displayCities(List<City> cities) {
         System.out.printf("%-30s | %-30s | %-20s | %-12s%n",
                 "City Name", "Country", "District", "Population");
@@ -170,6 +219,11 @@ public class CityReport {
         }
     }
 
+    /**
+     * Runs example city reports and prints the results.
+     *
+     * @param args not used
+     */
     public static void main(String[] args) {
         System.out.println("Top 5 populated cities in the world...");
         displayCities(getTopNCitiesInWorld(5));
