@@ -12,7 +12,7 @@ Welcome to the GitHub repository for Team 7 in SET08103 (Software Engineering Me
 ## Tech Stack
 
 * **Language:** Java 21
-* **Build Tool:** Maven![img.png](img.png)
+* **Build Tool:** Maven
 * **Containerization:** Docker (Amazon Corretto)
 * **CI/CD:** GitHub Actions
 

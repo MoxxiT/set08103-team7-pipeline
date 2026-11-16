@@ -49,7 +49,8 @@ jobs:
           DB_USER: root
           DB_PASSWORD: root
         run: mvn -B clean verify
-
+      - name: Stop containers using port 3306
+        run: docker ps -q --filter "publish=3306" | xargs -r docker stop
       - name: Smoke test Docker Compose
         run: |
           docker compose up --build --abort-on-container-exit \
