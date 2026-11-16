@@ -62,5 +62,8 @@ jobs:
           name: javadoc
           path: target/site/apidocs/
 
+      - name: Free port 3306 for the Docker stack
+        run: docker ps -q --filter "publish=3306" | xargs -r docker stop
+
       - name: Run Docker Compose stack
         run: docker compose up --build --abort-on-container-exit --exit-code-from app
