@@ -9,8 +9,18 @@ import java.util.List;
  */
 public class Main {
 
+    /** Not used: this is the entry point, so it is never instantiated. */
+    private Main() {
+    }
+
+    /** How many rows to show in each "top N" example report. */
     private static final int TOP_N = 5;
 
+    /**
+     * Runs every example report, then closes the database connection.
+     *
+     * @param args not used
+     */
     public static void main(String[] args) {
         try {
             run();
@@ -19,6 +29,10 @@ public class Main {
         }
     }
 
+    /**
+     * Runs one example of every report type and prints the results.
+     * Kept separate from {@link #main(String[])} so tests can call it.
+     */
     static void run() {
         // ----- Country reports -----
         section("Countries: top " + TOP_N + " in the world");
@@ -77,11 +91,24 @@ public class Main {
         LanguageReport.displayLanguageStatistics(LanguageReport.getLanguageStatistics());
     }
 
+    /**
+     * Prints a heading before a report.
+     *
+     * @param title the heading text
+     */
     private static void section(String title) {
         System.out.println();
         System.out.println("=== " + title + " ===");
     }
 
+    /**
+     * Returns the first n items of a list (or the whole list if it is shorter).
+     *
+     * @param list the list to shorten
+     * @param n    the maximum number of items to keep
+     * @param <T>  the type of item in the list
+     * @return a view of the first n items
+     */
     private static <T> List<T> firstN(List<T> list, int n) {
         return list.subList(0, Math.min(n, list.size()));
     }
