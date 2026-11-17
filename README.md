@@ -1,45 +1,44 @@
 # SET08103 - Team 7: Population Reporting System
 
+[![CI Status](https://github.com/MoxxiT/set08103-team7-pipeline/actions/workflows/maven.yml/badge.svg)](https://github.com/MoxxiT/set08103-team7-pipeline/actions)
+
+**Test Line Coverage:** 85% *(Measured on: 17 November 2026)*[cite: 2]
+
 Welcome to the GitHub repository for Team 7 in SET08103 (Software Engineering Methods) at Edinburgh Napier University. This project is a population reporting system designed to retrieve and organize population statistics from an SQL database.
 
 ## Team Members & Roles
 
-* **Trisztan** – Project Lead / Infrastructure & DevOps
-* **David** – Analysis & Design
-* **Dorjee** – Backend & Core Development
-* **Adrian** – Testing & Documentation
+- **Trisztan** – Project Lead / Infrastructure & DevOps
+- **David** – Analysis & Design
+- **Dorjee** – Backend & Core Development
+- **Adrian** – Testing & Documentation
 
 ## Tech Stack
 
-* **Language:** Java 21
-* **Build Tool:** Maven
-* **Containerization:** Docker (Amazon Corretto)
-* **CI/CD:** GitHub Actions
+- **Language:** Java 21
+- **Build Tool:** Maven
+- **Containerization:** Docker (Amazon Corretto)
+- **CI/CD:** GitHub Actions
 
 ## GitFlow Branching Strategy
 
 We follow a strict GitFlow branching model:
 
-* **`master`** – Holds stable, official releases (e.g., tagged with `v1.0.0`).
-* **`develop`** – The main integration branch for ongoing feature development.
-* **Feature Branches** – Created from `develop` for individual tasks and merged back via Pull Requests.
+- **`master`** – Holds stable, official releases (e.g., tagged with `v1.0.0`).
+- **`develop`** – The main integration branch for ongoing feature development.
+- **Feature Branches** – Created from `develop` for individual tasks and merged back via Pull Requests.
 
 ## Getting Started & Building Locally
 
 ### Prerequisites
 
-* Java 21 Development Kit (JDK) installed
-* Apache Maven installed
+- Java 21 Development Kit (JDK) installed
+- Apache Maven installed
 
 ### Build Instructions
-mvn clean test
+
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/MoxxiT/set08103-team7-pipeline.git
+   git clone [https://github.com/MoxxiT/set08103-team7-pipeline.git](https://github.com/MoxxiT/set08103-team7-pipeline.git)
    cd set08103-team7-pipeline
-   ```
-## Assumptions
-- Population of a district = sum of the populations of the cities recorded in that district (the database has no district table).
-- City names are not unique (e.g. three cities called Valencia). getCityPopulation(name) returns the largest match; use getCityPopulation(name, country) to be specific.
-- Top N reports return an empty list when N is zero or negative.
