@@ -49,8 +49,10 @@ jobs:
           DB_USER: root
           DB_PASSWORD: root
         run: mvn -B clean verify
+
       - name: Stop containers using port 3306
         run: docker ps -q --filter "publish=3306" | xargs -r docker stop
+
       - name: Smoke test Docker Compose
         run: |
           docker compose up --build --abort-on-container-exit \
@@ -65,14 +67,6 @@ jobs:
         if: always()
         run: docker compose down -v
 
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            target/set08103-team7-pipeline-1.0-SNAPSHOT.jar \
-            --generate-notes
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -86,3 +80,11 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/moxxit/set08103-team7-pipeline:${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            target/set08103-team7-pipeline-*.jar \
+            --generate-notes
