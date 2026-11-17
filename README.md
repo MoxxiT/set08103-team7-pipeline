@@ -2,7 +2,7 @@
 
 [![CI Status](https://github.com/MoxxiT/set08103-team7-pipeline/actions/workflows/maven.yml/badge.svg)](https://github.com/MoxxiT/set08103-team7-pipeline/actions)
 
-**Test Line Coverage:** 85% *(Measured on: 17 November 2026)*[cite: 2]
+**Test Line Coverage:** 85% *(Measured on: 17 November 2026)
 
 Welcome to the GitHub repository for Team 7 in SET08103 (Software Engineering Methods) at Edinburgh Napier University. This project is a population reporting system designed to retrieve and organize population statistics from an SQL database.
 
