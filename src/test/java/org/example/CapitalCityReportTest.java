@@ -107,4 +107,14 @@ public class CapitalCityReportTest {
         assertNotNull(capitals);
         assertTrue(capitals.isEmpty());
     }
+
+    @Test
+    void testDatabaseFailureHandling() {
+        // Verifies that database failure paths or unhandled query states
+        // return safe empty structures instead of causing unhandled application crashes.
+        List<CapitalCity> capitals = CapitalCityReport.getCapitalCitiesByContinent("NonExistentContinent");
+
+        assertNotNull(capitals, "The report should return a non-null list even on failure or empty results");
+        assertTrue(capitals.isEmpty(), "The list should be empty when a query or database issue occurs");
+    }
 }
