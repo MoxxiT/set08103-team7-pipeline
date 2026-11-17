@@ -3,6 +3,8 @@ services:
     build: db/.
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+    ports:
+      - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3306"]
       interval: 3s
