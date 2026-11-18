@@ -38,12 +38,15 @@ jobs:
       - name: Import world database
         run: mysql -h 127.0.0.1 -uroot -proot world < db/world.sql
 
-      - name: Build and run all tests
+      - name: Unit tests (no database)
+        run: mvn -B clean test -Dgroups=unit
+
+      - name: Integration tests (MySQL)
         env:
           DB_HOST: 127.0.0.1
           DB_USER: root
           DB_PASSWORD: root
-        run: mvn -B clean verify
+        run: mvn -B verify -DexcludedGroups=unit
 
       - name: Upload JaCoCo Coverage Report
         if: always()
