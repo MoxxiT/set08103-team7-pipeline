@@ -8,13 +8,14 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
+import org.junit.jupiter.api.Tag;
 /**
  * Tests the language report against the real world database.
  * In GitHub Actions the MySQL service container provides the database.
  * On a laptop without the database running, these tests are skipped
  * (start it with: docker compose up -d db).
  */
+@Tag("integration")
 class LanguageReportTest {
 
     private static final long WORLD_POPULATION = 6078749450L;

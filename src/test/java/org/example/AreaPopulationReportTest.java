@@ -6,11 +6,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
+import org.junit.jupiter.api.Tag;
 /**
  * Tests the single-figure population lookups against the real world database.
  * Skipped on a laptop without the database; required in CI (see CityReportQueryTest).
  */
+@Tag("integration")
 class AreaPopulationReportTest {
 
     @BeforeAll

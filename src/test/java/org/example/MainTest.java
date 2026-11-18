@@ -3,17 +3,19 @@ package org.example;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
 /**
  * Smoke test: the application entry point runs every report against the real database.
  * Skipped locally when the database is not running; fails in CI if it is missing.
  */
+
+@Tag("integration")
 class MainTest {
 
     @BeforeAll
