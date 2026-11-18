@@ -1,12 +1,29 @@
-
 package org.example;
 
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class PopulationReportIntegrationTest {
+
+    @BeforeAll
+    static void requireDatabase() {
+        boolean available = DatabaseConnection.getConnection() != null;
+        if (!available && System.getenv("CI") != null) {
+            fail("The database must be available in CI");
+        }
+        assumeTrue(available, "No local database running - skipping database tests");
+    }
+
+    @AfterAll
+    static void closeDatabase() {
+        DatabaseConnection.disconnect();
+    }
 
     private void checkReports(List<PopulationComposition> reports) {
         assertFalse(reports.isEmpty(), "Report should not be empty");
