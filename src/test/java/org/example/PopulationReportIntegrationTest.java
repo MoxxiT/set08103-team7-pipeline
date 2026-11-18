@@ -1,33 +1,28 @@
 package org.example;
 
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class PopulationReportIntegrationTest {
 
     @BeforeAll
-    static void checkDatabase() {
-        boolean dbConnected = false;
-        try {
-            // Try connecting directly to the MySQL database
-            var connection = java.sql.DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/world?useSSL=false&allowPublicKeyRetrieval=true",
-                    "root",
-                    "example"
-            );
-            if (connection != null) {
-                dbConnected = true;
-                connection.close();
-            }
-        } catch (Exception e) {
-            dbConnected = false;
+    static void requireDatabase() {
+        boolean available = DatabaseConnection.getConnection() != null;
+        if (!available && System.getenv("CI") != null) {
+            fail("The database must be available in CI");
         }
-        // Automatically skips all integration tests if no database is reachable
-        Assumptions.assumeTrue(dbConnected, "Skipping integration tests: No database available.");
+        assumeTrue(available, "No local database running - skipping database tests");
+    }
+
+    @AfterAll
+    static void closeDatabase() {
+        DatabaseConnection.disconnect();
     }
 
     private void checkReports(List<PopulationComposition> reports) {
