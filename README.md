@@ -1,5 +1,7 @@
 # SET08103 - Team 7: Population Reporting System
 
+[![CI Status](https://github.com/MoxxiT/set08103-team7-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/MoxxiT/set08103-team7-pipeline/actions)
+
 **Test Line Coverage:** 73.3% (measured on 18 November 2026, JaCoCo line coverage)
 
 Welcome to the GitHub repository for Team 7 in SET08103 (Software Engineering Methods) at Edinburgh Napier University. This project is a population reporting system designed to retrieve and organize population statistics from an SQL database.
