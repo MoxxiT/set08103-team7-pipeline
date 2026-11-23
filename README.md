@@ -28,6 +28,13 @@ We follow a strict GitFlow branching model:
 * **`develop`** – The main integration branch for ongoing feature development.
 * **Feature Branches** – Created from `develop` for individual tasks and merged back via Pull Requests.
 
+## Requirements
+
+* **Java 21** JDK (tested with 21.0.13)
+* **Apache Maven** (tested with 3.10.2)
+* **Docker Desktop** with Docker Compose (tested with 29.9.3)
+* **Port 3306 free** on the host, because the Docker Compose database uses it
+
 ## Getting Started & Building Locally
 
 ### Prerequisites
@@ -36,12 +43,33 @@ We follow a strict GitFlow branching model:
 * Apache Maven installed
 
 ### Build Instructions
-mvn clean test
+
 1. Clone the repository:
 
    ```bash
    git clone https://github.com/MoxxiT/set08103-team7-pipeline.git
    cd set08103-team7-pipeline
+   ```
+
+2. Start the database and wait until it is healthy:
+
+   ```bash
+   docker compose up -d db
+   docker compose ps
+   ```
+
+3. Build and run all tests:
+
+   ```bash
+   mvn clean package
+   ```
+
+   Without the database running, the database tests are skipped.
+
+4. Run the application: open `src/main/java/org/example/Main.java` in IntelliJ and run it, or run the whole stack with Docker:
+
+   ```bash
+   docker compose up --build --abort-on-container-exit --exit-code-from app
    ```
 ## Assumptions
 - Population of a district = sum of the populations of the cities recorded in that district (the database has no district table).

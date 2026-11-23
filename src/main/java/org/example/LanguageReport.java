@@ -178,7 +178,7 @@ public class LanguageReport {
         for (Language l : languages) {
 
             // Print the language statistics.
-            System.out.printf("%-15s | %-20d | %-25.2f%%%n",
+            System.out.printf("%-15s | %-20d | %.2f%%%n",
                     l.getLanguage(),
                     l.getTotalSpeakers(),
                     l.getPercentageOfWorldPopulation());
