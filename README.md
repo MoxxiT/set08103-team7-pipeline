@@ -28,6 +28,13 @@ We follow a strict GitFlow branching model:
 * **`develop`** – The main integration branch for ongoing feature development.
 * **Feature Branches** – Created from `develop` for individual tasks and merged back via Pull Requests.
 
+## Requirements
+
+* **Java 21** JDK (tested with 21.0.13)
+* **Apache Maven** (tested with 3.10.2)
+* **Docker Desktop** with Docker Compose (tested with 29.9.3)
+* **Port 3306 free** on the host, because the Docker Compose database uses it
+
 ## Getting Started & Building Locally
 
 ### Prerequisites
